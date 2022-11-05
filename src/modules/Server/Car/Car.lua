@@ -19,10 +19,6 @@ local Car = setmetatable({}, BaseObject)
 Car.ClassName = "Car"
 Car.__index = Car
 
-local cooldown = 0
-local seat
-local occupiedPlayer
-local occupiedClientScript
 local carClientScript = game:GetService("ServerStorage").CarClient
 local DEFAULT_COLLISION_GROUP = "Default"
 local CHARACTER_COLLISION_GROUP = "Character"
@@ -32,7 +28,11 @@ function Car.new(obj, serviceBag)
 
 	self._serviceBag = assert(serviceBag, "No serviceBag")
 	
-    seat = self._obj.Body.VehicleSeat
+    self._seat = self._obj.Body.VehicleSeat
+    self._cooldown = 0
+    self._occupiedPlayer = nil
+    self._occupiedClientScript = nil
+
 	self:_setup()
 
 	return self
@@ -50,16 +50,6 @@ local function observeProperty(instance, propertyName)
 	end)
 end
 
-local function Cooldown(duration)
-    local cooldownTag = tick()
-    cooldown = cooldownTag
-    task.delay(duration, function()
-        if cooldown == cooldownTag then
-            cooldown = 0
-        end
-    end)
-end
-
 local function SetCharacterCollide(character, shouldCollide)
     local group = (shouldCollide and DEFAULT_COLLISION_GROUP or CHARACTER_COLLISION_GROUP)
     for _, part in ipairs(character:GetDescendants()) do
@@ -75,7 +65,7 @@ function Car:_setupThings()
     self._prompt.Name = "CarEnter"
 	self._prompt.AutoLocalize = false
 	self._prompt.ActionText = "Enter!"
-	self._prompt.Parent = seat.Attachment
+	self._prompt.Parent = self._seat.Attachment
 	self._maid:GiveTask(self._prompt)
 
     self._zone = FruitZone.new(self._obj.Body.Zone)
@@ -94,6 +84,16 @@ function Car:_setupThings()
         --print("Weight changed,", weight)
         self._spinner.Value = weight
     end))
+end
+
+local function cooldown(car, duration)
+    local cooldownTag = tick()
+    car._cooldown = cooldownTag
+    task.delay(duration, function()
+        if car._cooldown == cooldownTag then
+            car._cooldown = 0
+        end
+    end)
 end
 
 function Car:_setup()
@@ -122,43 +122,43 @@ function Car:_setup()
 
     -- Player enters
     self._maid:GiveTask(self._prompt.Triggered:Connect(function(player)
-        if seat.Occupant or cooldown ~= 0 then return end
+        if self._seat.Occupant or self._cooldown ~= 0 then return end
 
         local character = player.Character
         if not character then return end
         local humanoid = character:FindFirstChildOfClass("Humanoid")
         if not humanoid then return end
 
-        seat:Sit(humanoid)
-        occupiedPlayer = player
+        self._seat:Sit(humanoid)
+        self._occupiedPlayer = player
 
         SetCharacterCollide(character, false)
         self._obj.PrimaryPart:SetNetworkOwner(player)
         self._prompt.Enabled = false
 
-        occupiedClientScript = carClientScript:Clone()
-        occupiedClientScript.Car.Value = self._obj
-        occupiedClientScript.Parent = player.Backpack
-        Cooldown(1)
+        self._occupiedClientScript = carClientScript:Clone()
+        self._occupiedClientScript.Car.Value = self._obj
+        self._occupiedClientScript.Parent = player.Backpack
+        cooldown(self, 1)
     end))
     -- Player leaves
-    self._maid:GiveTask(observeProperty(seat, "Occupant"):Subscribe(function()
-        if seat.Occupant then return end
-        if occupiedPlayer.Character then
-            SetCharacterCollide(occupiedPlayer.Character, true)
+    self._maid:GiveTask(observeProperty(self._seat, "Occupant"):Subscribe(function()
+        if self._seat.Occupant then return end
+        if self._occupiedPlayer.Character then
+            SetCharacterCollide(self._occupiedPlayer.Character, true)
             self._prompt.Enabled = true
         end
-        if occupiedClientScript.Parent  then
-            occupiedClientScript.Stop.Value = true
-            local client = occupiedClientScript
+        if self._occupiedClientScript.Parent  then
+            self._occupiedClientScript.Stop.Value = true
+            local client = self._occupiedClientScript
             task.delay(3, function()
                 client:Destroy()
             end)
         end
         self._obj.PrimaryPart:SetNetworkOwnershipAuto()
-        occupiedPlayer = nil
-        occupiedClientScript = nil
-        Cooldown(3)
+        self._occupiedPlayer = nil
+        self._occupiedClientScript = nil
+        cooldown(self, 3)
     end))
 end
 

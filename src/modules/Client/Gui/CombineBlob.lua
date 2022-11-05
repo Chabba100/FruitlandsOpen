@@ -3,28 +3,23 @@ local require = require(script.Parent.loader).load(script)
 local BasicPane = require("BasicPane")
 local Blend = require("Blend")
 local BasicPaneUtils = require("BasicPaneUtils")
+local ValueObject = require("ValueObject")
 
 local CombineBlob = setmetatable({}, BasicPane)
 CombineBlob.ClassName = "CombineBlob"
 CombineBlob.__index = CombineBlob
 
-function CombineBlob.new(fruits)
+function CombineBlob.new(fruitList, adornee)
 	local self = setmetatable(BasicPane.new(), CombineBlob)
 
-    self._adornee = Blend.State()
-    self._fruits = fruits
-
-    print(self._fruits)
+    self._adornee = adornee
+    self._fruitList = fruitList
 
 	self._maid:GiveTask(self:_render():Subscribe(function(gui)
 		self.Gui = gui
 	end))
 
 	return self
-end
-
-function CombineBlob:SetAdornee(what)
-    self._adornee.Value = what
 end
 
 function CombineBlob:_render()
@@ -44,9 +39,17 @@ function CombineBlob:_render()
                     Blend.New "UIListLayout" {
                         FillDirection = Enum.FillDirection.Horizontal;
                     };
-                    Blend.ComputedPairs(self._fruits, function(_index, value, innerMaid)
-                        print("running")
-                        return Instance.new("Frame")
+                    Blend.ComputedPairs(self._fruitList:ObserveItemsBrio(), function(_index, brio)
+                        if brio:IsDead() then
+                            return
+                        end
+
+                        local fruit = brio:GetValue()
+
+                        print("running", fruit)
+                        return Blend.New "ImageButton" {
+                            Name = fruit;
+                        }
                     end)
                 }
             }
