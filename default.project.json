@@ -1,0 +1,31 @@
+{
+  "name": "Fruitlands",
+  "tree": {
+    "$className": "DataModel",
+    "ServerScriptService": {
+      "packages": {
+        "$className": "Folder",
+        "@quenty": {
+          "$path": "lib/nevermore/"
+        },
+        "@ottohatt": {
+          "$path": "lib/evenmore/"
+        },
+        "game": {
+          "$path": "src/modules"
+        }
+      },
+
+      "Script": {
+        "$path": "src/scripts/Server"
+      }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "Main": {
+          "$path": "src/scripts/Client"
+        }
+      }
+    }
+  }
+}

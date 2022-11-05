@@ -1,0 +1,6 @@
+[submodule "lib/nevermore"]
+	path = lib/nevermore
+	url = https://github.com/quenty/nevermoreengine
+[submodule "lib/evenmore"]
+	path = lib/evenmore
+	url = https://github.com/ottohatt/evenmore
