@@ -39,6 +39,7 @@ function CombineBlob:_render()
                     self._fruitList:ObserveItemsBrio():Pipe({
                         RxBrioUtils.map(function(fruitName)
                             print(fruitName)
+                            
                             return Blend.New "ImageButton" {
                                 Name = fruitName;
                                 Size = UDim2.fromScale(0.2, 1);
