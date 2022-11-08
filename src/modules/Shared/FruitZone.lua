@@ -19,7 +19,7 @@ function CarZone.new(part)
 
     self._fruitsInside = {}
     self._oldFruits = {}
-    self._interval = 0.5
+    self._interval = 0.1
     self._nextStep = tick() + self._interval
 
     self.fruitEntered = Signal.new()

@@ -7,6 +7,7 @@ local Blend = require("Blend")
 local ObservableList = require("ObservableList")
 local RxBrioUtils = require("RxBrioUtils")
 local Rx = require("Rx")
+local ObservableMap = require("ObservableMap")
 
 local Players = game:GetService("Players")
 
@@ -18,9 +19,13 @@ function Combine.new(obj, serviceBag)
     local self = setmetatable(BaseObject.new(obj), Combine)
 
     self._fruits = ObservableList.new()
-    self._numbers = Blend.State({})
+    self._numbers = ObservableMap.new()
+    self._frame = Blend.State()
     self._maid:GiveTask(self._fruits)
     self._maid:GiveTask(self._numbers)
+    self._maid:GiveTask(self._frame)
+
+    
 
     self._maid:GiveTask((Blend.New "BillboardGui" {
         Name = "CombineBasket";
@@ -32,6 +37,7 @@ function Combine.new(obj, serviceBag)
             Blend.New "Frame" {
                 Size = UDim2.fromScale(1, 1);
                 BackgroundTransparency = 1;
+                [Blend.Instance] = self._frame;
 
                 [Blend.Children] = {
                     Blend.New "UIListLayout" {
@@ -40,12 +46,28 @@ function Combine.new(obj, serviceBag)
                         Padding = UDim.new(0, 8)
                     };
                     self._fruits:ObserveItemsBrio():Pipe({
-                        RxBrioUtils.map(function(fruit)
-                            local blob = CombineBlob.new(fruit, self._fruits)
-                            blob.DestroySignal:Connect(function()
-                                blob.Gui:Destroy()
+                        Rx.map(function(brio)
+                            if brio:IsDead() then
+                                return
+                            end
+
+                            local fruit = brio:GetValue()
+                            local brioMaid = brio:ToMaid()
+
+                            self:_count(fruit)
+
+                            brioMaid:GiveTask(function()
+                                self:_count(fruit)
                             end)
-                            return blob.Gui
+
+
+                            if not self._frame.Value:FindFirstChild(fruit) then
+                                local blob = CombineBlob.new(fruit, self._numbers)
+                                
+                                return blob.Gui
+                            end
+
+                            return Rx.EMPTY
                         end)
                     })
                 }
@@ -68,6 +90,16 @@ function Combine.new(obj, serviceBag)
     end)
 
     return self
+end
+
+function Combine:_count(fruit)
+    local count = 0
+    for _, v in pairs(self._fruits:GetList()) do
+        if v == fruit then
+            count += 1
+        end
+    end
+    self._numbers:Set(fruit, count)
 end
 
 return Combine
