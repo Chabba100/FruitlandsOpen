@@ -2,19 +2,24 @@ local require = require(script.Parent.loader).load(script)
 
 local BasicPane = require("BasicPane")
 local Blend = require("Blend")
-local BasicPaneUtils = require("BasicPaneUtils")
-local RxBrioUtils = require("RxBrioUtils")
+local Viewport = require("Viewport")
+local Rx = require("Rx")
+local Signal = require("Signal")
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local CombineBlob = setmetatable({}, BasicPane)
 CombineBlob.ClassName = "CombineBlob"
 CombineBlob.__index = CombineBlob
 
-function CombineBlob.new(fruitList, adornee)
+function CombineBlob.new(fruit, fruits)
 	local self = setmetatable(BasicPane.new(), CombineBlob)
 
-    self._adornee = adornee
-    self._fruitList = fruitList
-
+    self._fruit = fruit
+    self._fruits = fruits
+    
+    self.DestroySignal = Signal.new()
+    self._maid:GiveTask(self.DestroySignal)
 	self._maid:GiveTask(self:_render():Subscribe(function(gui)
 		self.Gui = gui
 	end))
@@ -23,45 +28,50 @@ function CombineBlob.new(fruitList, adornee)
 end
 
 function CombineBlob:_render()
-    local percentVisible = Blend.Spring(BasicPaneUtils.observePercentVisible(self), 30)
-    local transparency = BasicPaneUtils.toTransparency(percentVisible)
+    return Blend.New "ImageButton" {
+        Name = self._fruit;
+        Size = UDim2.fromScale(0.2, 1);
+        BackgroundTransparency = 1;
+        Image = "rbxassetid://11471105336";
 
-    return Blend.New "BillboardGui" {
-        Name = "CombineBasket";
-        Adornee = self._adornee;
-        Size = UDim2.fromScale(4, 1);
+        [Blend.OnEvent "Activated"] = function()
+            print(self._fruit, "was clicked!")
+        end;
 
         [Blend.Children] = {
-            Blend.New "Frame" {
-                Size = UDim2.fromScale(1, 1);
-
-                [Blend.Children] = {
-                    self._fruitList:ObserveItemsBrio():Pipe({
-                        RxBrioUtils.map(function(fruitName)
-                            print(fruitName)
-                            
-                            return Blend.New "ImageButton" {
-                                Name = fruitName;
-                                Size = UDim2.fromScale(0.2, 1);
-                                BackgroundColor3 = Color3.fromRGB(182, 21, 21);
-
-                                [Blend.Children] = {
-                                    Blend.New "UIAspectRatioConstraint" {
-                                        AspectRatio = 1;
-                                    }
-                                }
-                            }
-                        end)
-                    }),
-                    Blend.New "UIListLayout" {
-                        FillDirection = Enum.FillDirection.Horizontal;
-                        --Padding = UDim.new(0, 5)
-                    }
-                }
+            Viewport.blend({
+                Instance = ReplicatedStorage.Fruits[self._fruit]:Clone()
+            });
+            Blend.New "TextLabel" {
+                Name = "Count";
+                FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json");
+                Text = self._fruits:ObserveCount():Pipe({
+                    Rx.map(function()
+                        local ofFruit = 0
+                        for _, fruit in pairs(self._fruits:GetList()) do
+                            print(fruit)
+                            if fruit == self._fruit then
+                                ofFruit += 1
+                            end
+                        end
+                        if ofFruit > 1 then
+                            print("yes")
+                            self.DestroySignal:Fire()
+                        end
+                        return "x" .. tostring(ofFruit)
+                    end)
+                });
+                TextColor3 = Color3.fromRGB(96, 58, 58);
+                TextScaled = true;
+                TextSize = 14;
+                TextWrapped = true;
+                BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+                BackgroundTransparency = 1;
+                Position = UDim2.fromScale(0.75, 0);
+                Size = UDim2.fromScale(0.4, 0.4);
             }
         }
     }
-
 end
 
 return CombineBlob
