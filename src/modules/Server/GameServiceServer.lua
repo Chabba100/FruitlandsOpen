@@ -4,9 +4,6 @@
 
 local require = require(script.Parent.loader).load(script)
 
-local PermissionProviderUtils = require("PermissionProviderUtils")
-local CmdrService = require("CmdrService")
-
 local GameServiceServer = {}
 
 function GameServiceServer:Init(serviceBag)
@@ -17,6 +14,7 @@ function GameServiceServer:Init(serviceBag)
 
 	-- Internal
 	self._serviceBag:GetService(require("GameBindersServer"))
+	self._serviceBag:GetService(require("DataService"))
 	--self._serviceBag:GetService(require("BuildServer"))
 end
 

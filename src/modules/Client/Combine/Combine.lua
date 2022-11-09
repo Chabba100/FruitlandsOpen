@@ -29,6 +29,7 @@ function Combine.new(obj, serviceBag)
     self._maid:GiveTask(self._numbers.KeyValueChanged:Connect(function(key, value)
         if value == 0 then
             self._blobs:Get(key):Destroy()
+            self._blobs:Set(key, nil)
         end
     end))
 

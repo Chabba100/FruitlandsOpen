@@ -16,7 +16,9 @@ function CombineBlob.new(fruit, numbers)
 
     self._fruit = fruit
     self._numbers = numbers
-    
+    self._model = ReplicatedStorage.Fruits[self._fruit]:Clone()
+    self._maid:GiveTask(self._model)
+
 	self._maid:GiveTask(self:_render():Subscribe(function(gui)
 		self.Gui = gui
 	end))
@@ -37,14 +39,14 @@ function CombineBlob:_render()
 
         [Blend.Children] = {
             Viewport.blend({
-                Instance = ReplicatedStorage.Fruits[self._fruit]:Clone()
+                Instance = self._model
             });
             Blend.New "TextLabel" {
                 Name = "Count";
                 FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json");
                 Text = self._numbers:ObserveValueForKey(self._fruit):Pipe({
                     Rx.map(function(count)
-                        return tostring(count)
+                        return "x" .. tostring(count)
                     end)
                 });
                 TextColor3 = Color3.fromRGB(96, 58, 58);
