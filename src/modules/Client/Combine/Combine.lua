@@ -5,7 +5,6 @@ local promiseChild = require("promiseChild")
 local CombineBlob = require("CombineBlob")
 local Blend = require("Blend")
 local ObservableList = require("ObservableList")
-local RxBrioUtils = require("RxBrioUtils")
 local Rx = require("Rx")
 local ObservableMap = require("ObservableMap")
 
@@ -20,12 +19,18 @@ function Combine.new(obj, serviceBag)
 
     self._fruits = ObservableList.new()
     self._numbers = ObservableMap.new()
+    self._blobs = ObservableMap.new()
     self._frame = Blend.State()
     self._maid:GiveTask(self._fruits)
     self._maid:GiveTask(self._numbers)
+    self._maid:GiveTask(self._blobs)
     self._maid:GiveTask(self._frame)
 
-    
+    self._maid:GiveTask(self._numbers.KeyValueChanged:Connect(function(key, value)
+        if value == 0 then
+            self._blobs:Get(key):Destroy()
+        end
+    end))
 
     self._maid:GiveTask((Blend.New "BillboardGui" {
         Name = "CombineBasket";
@@ -63,7 +68,9 @@ function Combine.new(obj, serviceBag)
 
                             if not self._frame.Value:FindFirstChild(fruit) then
                                 local blob = CombineBlob.new(fruit, self._numbers)
-                                
+                                self:_count(fruit)
+
+                                self._blobs:Set(fruit, blob)
                                 return blob.Gui
                             end
 
@@ -74,7 +81,6 @@ function Combine.new(obj, serviceBag)
             }
         }
     }):Subscribe(function(gui)
-        print(gui)
         gui.Parent = Players.LocalPlayer.PlayerGui
     end))
 
