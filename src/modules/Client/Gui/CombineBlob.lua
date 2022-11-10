@@ -19,6 +19,10 @@ function CombineBlob.new(fruit, numbers)
     self._model = ReplicatedStorage.Fruits[self._fruit]:Clone()
     self._maid:GiveTask(self._model)
 
+    self._maid:GiveTask(function()
+        print("blob destroyed")
+    end)
+
 	self._maid:GiveTask(self:_render():Subscribe(function(gui)
 		self.Gui = gui
 	end))

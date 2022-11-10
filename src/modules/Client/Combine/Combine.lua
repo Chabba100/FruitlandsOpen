@@ -20,11 +20,9 @@ function Combine.new(obj, serviceBag)
     self._fruits = ObservableList.new()
     self._numbers = ObservableMap.new()
     self._blobs = ObservableMap.new()
-    self._frame = Blend.State()
     self._maid:GiveTask(self._fruits)
     self._maid:GiveTask(self._numbers)
     self._maid:GiveTask(self._blobs)
-    self._maid:GiveTask(self._frame)
 
     self._maid:GiveTask(self._numbers.KeyValueChanged:Connect(function(key, value)
         if value == 0 then
@@ -43,7 +41,6 @@ function Combine.new(obj, serviceBag)
             Blend.New "Frame" {
                 Size = UDim2.fromScale(1, 1);
                 BackgroundTransparency = 1;
-                [Blend.Instance] = self._frame;
 
                 [Blend.Children] = {
                     Blend.New "UIListLayout" {
@@ -66,12 +63,10 @@ function Combine.new(obj, serviceBag)
                                 self:_count(fruit)
                             end)
 
-
-                            if not self._frame.Value:FindFirstChild(fruit) then
+                            if not self._blobs:Get(fruit) then
                                 local blob = CombineBlob.new(fruit, self._numbers)
-                                self:_count(fruit)
-
                                 self._blobs:Set(fruit, blob)
+
                                 return blob.Gui
                             end
 
