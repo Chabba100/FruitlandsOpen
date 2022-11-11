@@ -17,8 +17,6 @@ function GameServiceServer:Init(serviceBag)
 
 	-- Internal
 	self._serviceBag:GetService(require("GameBindersServer"))
-	--self._serviceBag:GetService(require("DataService"))
-	--self._serviceBag:GetService(require("BuildServer"))
 end
 
 return GameServiceServer

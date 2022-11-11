@@ -5,6 +5,7 @@ local IKGripUtils = require("IKGripUtils")
 local GameSettings = require("GameSettings")
 local Maid = require("Maid")
 local AttributeValue = require("AttributeValue")
+local FruitUtil = require("FruitUtil")
 
 local Fruit = setmetatable({}, BaseObject)
 Fruit.ClassName = "Fruit"
@@ -36,6 +37,7 @@ function Fruit.new(obj, serviceBag)
     self._alreadyPickedUp = AttributeValue.new(self._obj, "alreadyPickedUp", false)
 
     self._maid:GiveTask(self._grabFunction.OnServerEvent:Connect(function(player: Player)
+        if not FruitUtil.canPickup(player.Character) then return end
         if self._obj:FindFirstChild("CarWeld") then
             self._obj.CarWeld:Destroy()
         end
@@ -52,9 +54,9 @@ function Fruit.new(obj, serviceBag)
         weld.Part0 = self._obj
         weld.Part1 = player.Character.HumanoidRootPart
         weld.Parent = self._obj
-        self._grabMaid:GiveTask(weld)
         local att = Instance.new("Attachment")
         att.Parent = self._obj
+        self._grabMaid:GiveTask(weld)
         self._grabMaid:GiveTask(att)
 
         -- Grip
@@ -67,7 +69,9 @@ function Fruit.new(obj, serviceBag)
     end))
 
     self._throwFunction.OnServerInvoke = function(player: Player, hit: Vector3)
+        if player:DistanceFromCharacter(hit) >= GameSettings.THROW_DISTANCE then return end
         self._isHolding.Value = false
+        player:SetAttribute("isHolding", false)
 
         local hrp = player.Character.HumanoidRootPart
         local g = Vector3.new(0, -workspace.Gravity, 0)
