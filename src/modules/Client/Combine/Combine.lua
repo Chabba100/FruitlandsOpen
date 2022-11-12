@@ -63,8 +63,9 @@ function Combine.new(obj, serviceBag)
                                 self:_count(fruit)
                             end)
 
+                            -- Create a new blob if there isn't already one
                             if not self._blobs:Get(fruit) then
-                                local blob = CombineBlob.new(fruit, self._numbers)
+                                local blob = CombineBlob.new(fruit, self._numbers, self._obj)
                                 self._blobs:Set(fruit, blob)
 
                                 return blob.Gui

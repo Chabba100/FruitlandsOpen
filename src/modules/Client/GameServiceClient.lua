@@ -16,6 +16,7 @@ function GameServiceClient:Init(serviceBag)
 	-- External
 	self._serviceBag:GetService(require("CameraStackService"))
 	self._serviceBag:GetService(require("IKServiceClient")):SetLookAround(true)
+	self._serviceBag:GetService(require("SoftShutdownServiceClient"))
 
 	--Internal
 	self._serviceBag:GetService(require("GameBindersClient"))

@@ -11,17 +11,15 @@ local CombineBlob = setmetatable({}, BasicPane)
 CombineBlob.ClassName = "CombineBlob"
 CombineBlob.__index = CombineBlob
 
-function CombineBlob.new(fruit, numbers)
+function CombineBlob.new(fruit, numbers, basket)
 	local self = setmetatable(BasicPane.new(), CombineBlob)
 
     self._fruit = fruit
     self._numbers = numbers
+    self._basket = basket
+
     self._model = ReplicatedStorage.Fruits[self._fruit]:Clone()
     self._maid:GiveTask(self._model)
-
-    self._maid:GiveTask(function()
-        print("blob destroyed")
-    end)
 
 	self._maid:GiveTask(self:_render():Subscribe(function(gui)
 		self.Gui = gui
@@ -38,7 +36,7 @@ function CombineBlob:_render()
         Image = "rbxassetid://11471105336";
 
         [Blend.OnEvent "Activated"] = function()
-            print(self._fruit, "was clicked!")
+            self._basket.Combine:FireServer(self._fruit)
         end;
 
         [Blend.Children] = {

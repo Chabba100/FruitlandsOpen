@@ -84,6 +84,11 @@ function Fruit.new(obj, serviceBag)
         self._obj:SetNetworkOwner(player)
         self._obj.Velocity = v0
 
+        -- uncomment if we have exploit issues
+        --[[ task.delay(GameSettings.THROW_TIME, function()
+            self._obj:SetNetworkOwner(nil)
+        end) ]]
+
         return true
     end
 

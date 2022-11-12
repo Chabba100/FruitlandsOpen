@@ -14,6 +14,7 @@ function GameServiceServer:Init(serviceBag)
 	-- External
 	self._serviceBag:GetService(require("IKService"))
 	self._serviceBag:GetService(require("PlayerDataStoreService"))
+	self._serviceBag:GetService(require("SoftShutdownService"))
 
 	-- Internal
 	self._serviceBag:GetService(require("GameBindersServer"))
