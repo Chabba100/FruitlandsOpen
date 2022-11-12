@@ -4,7 +4,6 @@
 
 local require = require(script.Parent.loader).load(script)
 
-local Table = require("Table")
-local Blend = require("Blend")
+local ValueObject = require("ValueObject")
 
-return Blend.State(nil)
+return ValueObject.new()
