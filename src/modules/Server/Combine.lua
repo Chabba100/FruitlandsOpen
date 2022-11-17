@@ -6,6 +6,9 @@ local AttributeUtils = require("AttributeUtils")
 local ObservableList = require("ObservableList")
 local Spring = require("Spring")
 local Maid = require("Maid")
+local GetRemoteEvent = require("GetRemoteEvent")
+local StepUtils = require("StepUtils")
+local SpringUtils = require("SpringUtils")
 
 local CollectionService = game:GetService("CollectionService")
 local RunService = game:GetService("RunService")
@@ -52,6 +55,8 @@ function Combine.new(obj, serviceBag)
 	self._combine.Name = "Combine"
 	self._combine.Parent = self._obj
 
+	self._flashbang = GetRemoteEvent("flashbang")
+
 	self._maid:GiveTask(self._fruitAdded)
 	self._maid:GiveTask(self._fruitLeft)
 	self._maid:GiveTask(self._combine)
@@ -80,38 +85,40 @@ function Combine.new(obj, serviceBag)
 		local combineMaid = Maid.new()
 		local count = self:_count(fruit)
 		local cords = ComputeCircleCoords(self._obj.CombineLoc.Position, count, 2)
+		local Model = Instance.new("Model", self._obj)
 
 		-- Loop to get fruit objects
 		local fruits = {}
 		for i, v in pairs(self._fruits:GetList()) do
 			if v.Name == fruit then
+				v.Anchored = true
+				v.CanCollide = false
+				CollectionService:RemoveTag(v, "Fruit")
+				v.Parent = Model
 				table.insert(fruits, v)
 			end
 		end
-
+		
 		-- move fruits
 		local moveMaid = Maid.new()
 		for i, pos in pairs(cords) do
 			local spring = Spring.new(fruits[i].Position)
 			spring.s = 9
 			spring.t = pos
-			fruits[i].Anchored = true
-			fruits[i].CanCollide = false
-			CollectionService:RemoveTag(fruits[i], "Fruit")
 
-			moveMaid:GiveTask(RunService.Heartbeat:Connect(function()
+			local start, stop = StepUtils.bindToStepped(function()
 				fruits[i].Position = spring.p
-			end))
+				return SpringUtils.animating(spring)
+			end)
+			moveMaid:GiveTask(stop)
+			start()
+
 			task.wait(0.2)
 		end
 		task.wait(2)
 		moveMaid:DoCleaning()
 		moveMaid = nil
-
-		local Model = Instance.new("Model")
-		Model.Parent = self._obj
-		combineMaid:GiveTask(Model)
-
+		
 		local Center = Instance.new("Part")
 		Center.Transparency = 1
 		Center.Anchored = true
@@ -119,15 +126,18 @@ function Combine.new(obj, serviceBag)
 		Center.Size = Vector3.new(1, 1, 1)
 		Center.Position = self._obj.CombineLoc.Position
 		Center.Parent = Model
-		combineMaid:GiveTask(Center)
 		Model.PrimaryPart = Center
 
 		local current = 0.08
-
-		local spin = RunService.Heartbeat:Connect(function()
+		combineMaid:GiveTask(RunService.Heartbeat:Connect(function()
 			current += 0.002
-			Model:SetPrimaryPartCFrame(Center.CFrame * CFrame.fromEulerAnglesXYZ(0, current, 0))
-		end)
+			Model:PivotTo(Center.CFrame * CFrame.fromEulerAnglesXYZ(0, current, 0))
+		end))
+
+		task.wait(3)
+		self._flashbang:FireClient(player)
+		combineMaid:DoCleaning()
+		combineMaid = nil
 	end))
 
 	return self

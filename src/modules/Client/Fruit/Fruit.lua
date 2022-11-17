@@ -7,6 +7,7 @@ local Maid = require("Maid")
 local promiseChild = require("promiseChild")
 local CameraStackService = require("CameraStackService")
 local FruitUtil = require("FruitUtil")
+local GameTranslator = require("GameTranslator")
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -22,13 +23,19 @@ function Fruit.new(obj, serviceBag)
 
     self._serviceBag = assert(serviceBag, "No serviceBag")
     self._cameraStackService = self._serviceBag:GetService(CameraStackService)
+    self._gameTranslator = self._serviceBag:GetService(GameTranslator)
 
     self._prompt = Instance.new("ProximityPrompt")
     self._prompt.AutoLocalize = false
     self._prompt.Name = "Grab"
-    self._prompt.ActionText = "Grab"
+    --self._prompt.ActionText = "Grab"
     self._prompt.Parent = self._obj
     self._maid:GiveTask(self._prompt)
+    self._maid:GivePromise(self._gameTranslator:PromiseFormatByKey("actions.grab"))
+        :Then(function(text)
+            self._prompt.ActionText = text
+        end)
+
     self._mouse = Mouse.new()
     self._maid:GiveTask(self._mouse)
 

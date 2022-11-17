@@ -4,9 +4,6 @@
 
 local require = require(script.Parent.loader).load(script)
 
-local SoundScriptRegistryServiceClient = require("SoundScriptRegistryServiceClient")
-local SoundScriptConstants = require("SoundScriptConstants")
-
 local GameServiceClient = {}
 GameServiceClient.ServiceName = "GameServiceClient"
 
@@ -21,6 +18,7 @@ function GameServiceClient:Init(serviceBag)
 	--Internal
 	self._serviceBag:GetService(require("GameBindersClient"))
 	self._serviceBag:GetService(require("GameTranslator"))
+	self._serviceBag:GetService(require("FlashbangServiceClient"))
 end
 
 return GameServiceClient
