@@ -9,6 +9,7 @@ local Maid = require("Maid")
 local GetRemoteEvent = require("GetRemoteEvent")
 local StepUtils = require("StepUtils")
 local SpringUtils = require("SpringUtils")
+local FruitUtil = require("FruitUtil")
 
 local CollectionService = game:GetService("CollectionService")
 local RunService = game:GetService("RunService")
@@ -98,7 +99,7 @@ function Combine.new(obj, serviceBag)
 				table.insert(fruits, v)
 			end
 		end
-		
+
 		-- move fruits
 		local moveMaid = Maid.new()
 		for i, pos in pairs(cords) do
@@ -118,7 +119,7 @@ function Combine.new(obj, serviceBag)
 		task.wait(2)
 		moveMaid:DoCleaning()
 		moveMaid = nil
-		
+
 		local Center = Instance.new("Part")
 		Center.Transparency = 1
 		Center.Anchored = true
@@ -138,6 +139,9 @@ function Combine.new(obj, serviceBag)
 		self._flashbang:FireClient(player)
 		combineMaid:DoCleaning()
 		combineMaid = nil
+
+		-- give fruit to player
+		FruitUtil.pickup()
 	end))
 
 	return self
